@@ -36,6 +36,7 @@ public class SocketAccepter implements Runnable {
             try{
                 SocketChannel socketChannel = this.serverSocket.accept();
 
+                socketChannel.configureBlocking(false);
                 //todo check if the queue can even accept more sockets.
                 this.socketQueue.add(new Socket(socketChannel));
 

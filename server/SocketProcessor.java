@@ -16,25 +16,16 @@ public class SocketProcessor implements Runnable {
 
 	private Queue<Socket>  inboundSocketQueue   = null;
 	
-	
-	Stream<String> stream_channel1 = null;
-	Stream<String> stream_channel2 = null;
-	
 	List<String> list_channel1 = null;
 	List<String> list_channel2 = null;
 	
 	private Selector   readSelector    = null;
-    Integer channelId = null;
     StringBuilder output_string_builder = null;
     String output = new String();
-  //start incoming socket ids from 16K - reserve bottom ids for pre-defined sockets (servers).
-    //private long              nextSocketId = 16 * 1024; 
-
-    
+      
 	public SocketProcessor(Queue<Socket> socketQueue) {
 		// TODO Auto-generated constructor stub
 		this.inboundSocketQueue = socketQueue;
-		channelId = new Integer(1);
 		output_string_builder = new StringBuilder();
 		list_channel1 = new ArrayList<String>();
 		list_channel2 = new ArrayList<String>();
@@ -68,27 +59,21 @@ public class SocketProcessor implements Runnable {
 	
 	private void executeCycle() throws IOException {
         takeNewSockets();
-        int old_len = output.length();
         readFromSockets();
-        int new_len = output.length();
-        if(new_len > old_len){
-        	Runtime.getRuntime().exec("clear");
-        	System.out.println(output);
+        int new_len = output_string_builder.length();
+        if(new_len > 0){
+        	//Runtime.getRuntime().exec("clear");
+        	System.out.println(output_string_builder.toString());
+        	output_string_builder = new StringBuilder();
         }
     }
 	
 	private void takeNewSockets() throws IOException {
         Socket newSocket = this.inboundSocketQueue.poll();
 
-        channelId++;
         while(newSocket != null){
-            newSocket.get_socket_channel().configureBlocking(false);
-
-            
-            
             SelectionKey key = newSocket.get_socket_channel().register(this.readSelector, SelectionKey.OP_READ);
             key.attach(newSocket);
-
             newSocket = this.inboundSocketQueue.poll();
         }
     }
@@ -102,9 +87,7 @@ public class SocketProcessor implements Runnable {
 
             while(keyIterator.hasNext()) {
                 SelectionKey key = keyIterator.next();
-
                 readFromSocket(key);
-
                 keyIterator.remove();
             }
             selectedKeys.clear();
@@ -116,8 +99,8 @@ public class SocketProcessor implements Runnable {
 	private void readFromSocket(SelectionKey key) throws IOException {
         Socket socket = (Socket) key.attachment();
         
-        socket.read();
-        String string_read = socket.getOut();
+        
+        String string_read = socket.read();
         
         List<String> color_values = Arrays.asList(string_read.split(" "));
         
@@ -131,12 +114,6 @@ public class SocketProcessor implements Runnable {
         	
         	generate_output();
         }
-        
-        
-        
-        output = output_string_builder.toString();
-        System.out.println("output:" + output);
-        
     }
 
 	private void generate_output() {
@@ -148,21 +125,13 @@ public class SocketProcessor implements Runnable {
 		Integer count2 = new Integer(ch2.getQ().size());
 		while((ch1.getQ().size()>0 && count1>0) && (ch2.getQ().size()>0 && count2>0)){
 			ch1.match(ch2, output_string_builder);
+			ch2.match(ch1, output_string_builder);
 			count1--;
 			count2--;
 			
-			
 		}
-		
-		
-		
 		
 	}
 
-	
-
-	
-	
-	
 
 }

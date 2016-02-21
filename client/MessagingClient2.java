@@ -47,6 +47,9 @@ public class MessagingClient2 implements Runnable{
 		try {
 			socketchannel = SocketChannel.open();
 			socketchannel.connect(new InetSocketAddress(serverHostName, serverPort));
+			socketchannel.configureBlocking(false);
+			
+			
 			while(true){
 				String message = getRandomColorString();
 				System.out.println(message);

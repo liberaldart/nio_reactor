@@ -11,12 +11,11 @@ import java.nio.charset.Charset;
 public class Socket {
     private SocketChannel  socketChannel = null;
     private String output = null;
-    private byte[] stored_partial;
     private ByteBuffer readByteBuffer;
     
     public Socket(SocketChannel socketChannel) {
         this.socketChannel = socketChannel;
-        readByteBuffer = ByteBuffer.allocate(64);
+        readByteBuffer = ByteBuffer.allocate(1024);
         output = new String();
     }
     
@@ -24,11 +23,8 @@ public class Socket {
     	return socketChannel;
     }
     
-    public String getOut(){
-    	return output;
-    }
 
-    public int read() throws IOException {
+    public String read() throws IOException {
         
     	StringBuilder output_gen = new StringBuilder();
     	
@@ -37,23 +33,19 @@ public class Socket {
     	int totalBytesRead = bytesRead;
         
     	//keep writing until you have written 64 bytes
-        while(totalBytesRead < 64 && bytesRead > 0){
+        while(totalBytesRead < 10 && bytesRead > 0){
             bytesRead = this.socketChannel.read(readByteBuffer);
             totalBytesRead += bytesRead;
         }
         
         
         
-      //Make buffer available for read
+        //Make buffer available for read
         readByteBuffer.flip();
         
-     // read all the characters into output_gen
+        // read all the characters into output_gen
         output_gen.append(Charset.forName("ISO-8859-1").decode(readByteBuffer));
         
-//        while(readByteBuffer.hasRemaining()){
-//        	output_gen.append(readByteBuffer.getChar());
-//        }
-//        
         //start reading output_gen from the end until you find a ' '
         int n = output_gen.length();
         int i = n - 1;
@@ -80,11 +72,13 @@ public class Socket {
         		readByteBuffer.putChar(output_gen.charAt(j));
         	}
         }
-        output_gen = new StringBuilder(output_gen.substring(0, i));
+        
+        output_gen.delete(i, n);
+        //output_gen = new StringBuilder(output_gen.substring(0, i));
         //output = Charset.forName("ISO-8859-1").decode(readByteBuffer).toString();
         //readByteBuffer.get(stored_partial);
         output = output_gen.toString();
-        return totalBytesRead;
+        return output;
     }
 
 
