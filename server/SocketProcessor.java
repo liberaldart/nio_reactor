@@ -16,8 +16,7 @@ public class SocketProcessor implements Runnable {
 
 	private Queue<Socket>  inboundSocketQueue   = null;
 	
-	private ByteBuffer readByteBuffer  = ByteBuffer.allocate(6);
-    
+	
 	Stream<String> stream_channel1 = null;
 	Stream<String> stream_channel2 = null;
 	
@@ -116,22 +115,18 @@ public class SocketProcessor implements Runnable {
 	
 	private void readFromSocket(SelectionKey key) throws IOException {
         Socket socket = (Socket) key.attachment();
-        int num_bytes = socket.read(this.readByteBuffer);
-        if(num_bytes >0){
-        	String out = socket.getOut();
-        	List<String> new_data = Arrays.asList(out.split(" "));
-        	char channelId = new_data.get(0).charAt(1);
-        	if(channelId == '1'){
-        		list_channel1.addAll(new_data);
-        		
-        	}
-        	if(channelId == '2'){
-        		list_channel2.addAll(new_data);
-        		
-        		
-        	}
-        }
         
+        socket.read();
+        String string_read = socket.getOut();
+        
+        List<String> color_values = Arrays.asList(string_read.split(" "));
+        
+        if(color_values.get(0).charAt(1) == '1'){
+        	list_channel1.addAll(color_values);
+        }
+        if(color_values.get(1).charAt(1) == '2'){
+        	list_channel2.addAll(color_values);
+        }
         if(list_channel1.size() > 0 && list_channel2.size() > 0){
         	
         	generate_output();
@@ -140,6 +135,7 @@ public class SocketProcessor implements Runnable {
         
         
         output = output_string_builder.toString();
+        System.out.println("output:" + output);
         
     }
 
